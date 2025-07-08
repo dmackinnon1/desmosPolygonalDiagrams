@@ -102,4 +102,17 @@ One method of finding out the gnomon layer we are in is to use a formula for com
     \label{eq:determinant}
 \end{equation}
 
+\section{gnomon commitment}
+
+Comparing the listing for the hexagonal numbers with the diagrams above, you can see how the sequences are built diagrammatically. In general, beginning with a single dot, k-sided polygons are built by adding layers (called gnomons) consisting of k-2 segments, with each segment of the gnomon having one more dot than the segments of the previous layer. In this way, the nth gnomon consists of segments each n dots long, but with k-3 dots shared by adjoining segments (the corners).
+
+\begin{align}
+    p_{k, 1} &= 1 \\
+    p_{k,n} &= p_{k,n-1} + (k-2)n - (k-3)
+\end{align}
+
+\begin{equation}
+    p_{k,n} = \sum^{n}_{i=1}\left[(k-2)i-(k-3)\right] 
+\end{equation}
+
 \end{document}
