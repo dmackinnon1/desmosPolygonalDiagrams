@@ -8,14 +8,14 @@
 
 \usepackage{titling}
 
-\title{Desmos Polygonal Diagrams (draft)}
+\title{Desmos Polygonal Number Diagrams (draft)}
 \author{Dan MacKinnon}
 
 \begin{document}
 \maketitle
 \begin{abstract}
 \noindent
-Polygonal numbers, like the triangular, square, and pentagonal numbers, are closely identified with (or even defined in terms of) the diagrams that they are associated with. The functional approach provided by the Desmos graphing calculator provides fun and interesting ways of exploring number diagrams, like those associated with polygonal numbers. This short article provides one set of formulas that can be used to build polygonal number diagrams in Desmos.  
+Polygonal numbers, like the triangular, square, and pentagonal numbers, are closely identified with (or even defined in terms of) the diagrams that they are associated with. The functional programming capabilities of the Desmos graphing calculator provides fun and interesting ways of exploring number diagrams like those associated with polygonal numbers. This short article provides one approach that can be used to build polygonal number diagrams in Desmos.  
 \end{abstract}
 
 \section*{Polygonal numbers}
@@ -48,7 +48,7 @@ If $n$ is the $i$th $k$-polygonal number, it can be drawn as a layered regular $
 
 \section*{Placing any $n$ in a $k$-polygonal diagram}
 
-Let $n,k \in \mathbb{Z}^{+}$, $n > 2$. We'd like to draw the $k-$polygonal number diagram "up to" $n$. If $n$ happens to actually be a $k-$polygonal number, this will be a complete diagram with $n$ dots in a layered $k$-polygon. Otherwise, this will be a diagram whose outer gnomon layer is incomplete.
+Let $n,k \in \mathbb{Z}^{+}$, $k > 2$. We would like to draw the $k-$polygonal number diagram ``up to'' $n$. If $n$ happens to actually be a $k-$polygonal number, this will be a complete diagram with $n$ dots in a layered $k$-polygon. Otherwise, this will be a diagram whose outer gnomon layer is incomplete.
 
 Figure (\ref{fig:hexagonals}) shows hexagonal number ($k = 6$) diagrams for the numbers 15 and 26. Because 15 actually is a hexagonal number, the diagram is complete. The diagram for 26 shows an incomplete diagram, with an incomplete outer layer.
 
@@ -81,42 +81,50 @@ Applying the quadratic formula to solve $n-p_{k,i}=0$ provides us with
      \label{eq:quadform}
 \end{equation}
 
-This allows us to identify the preceding and current gnomon layers for a given $n$, along with a binary function determining if a given $n$ is a polygonal number.
-
-\begin{align}
-    g_{previous}\left(n,k\right) &= \text{floor}\left(g\left(n\right)\right) \\
-    g_{current}\left(n,k\right) &= \text{ceil}\left(g\left(n\right)\right)    
-    \label{eq:prev-and-current}
-\end{align}
+This allows us to identify the gnomon layer $\text{gnomon}(n,k)$ that a given $n$ will sit in within a $k$-polygonal diagram (\ref{eq:gnomon}).
 
 \begin{equation}
-    \text{isPoly}\left(n\right) = 1 - \left[ g_{current}\left(n,k\right) - g_{previous}\left(n,k\right) \right]
-    \label{eq:isPoly}
+    \text{gnomon}\left(n,k\right) = \text{floor}\left(g\left(n\right)\right)  
+    \label{eq:gnomon}
 \end{equation}
 
-Equation (\ref{eq:isPoly}) is equivalent to (\ref{eq:isPoly2}).
+\subsection*{The position of $n$ within its gnomon layer}
+
+The size of the gnomon layer that $n$ will sit in (how many dots would be in the layer within the diagram) is given by Equation (\ref{eq:gnomon-size}).
 
 \begin{equation}
- \text{isPoly}\left(n,k\right) =
-    \begin{cases}
-      0 & \text{if $n$ is not $k$-polygonal}\\
-      1 & \text{if $n$ is $k$-polygonal}\\
-    \end{cases} 
-    \label{eq:isPoly2}
+\text{gsize}\left(n,k\right)= 1+(\text{gnomon}\left(n,k\right)-1)\cdot\left(k-2\right)
+\label{eq:gnomon-size}
+\end{equation}
+
+To find the position of the $n$th dot within the gnomon, we need to count the number of dots that came before it within that gnomon. To do this we can sum up to $n-1$ over a function whose value is $0$ for all $i$ where $gnomon(i,k)<gnomon(n,k)$, and whose value is $1$ for those $i$ where $gnomon(i,k)=gnomon(n,k)$. This sum that gives us the "depth" of \textit{n} within its gnomon is provided by Equation (\ref{eq:gnomon-depth}).
+
+\begin{equation}
+    \text{gdepth}\left(n,k\right)=\sum_{i=1}^{n}\left(\text{floor}\left(\frac{gnomon\left(i,k\right)}{gnomon\left(n,k\right)}\right)\right)
+    \label{eq:gnomon-depth}
 \end{equation}
 
 \section*{Drawing the diagram}
-Following this standard approach, to draw up to a given number $n$ in a $k$-polygonal diagram, you determine which gnomon layer it lies in, how far along the gnomon layer it is, and what side of the gnomon it is on. The gnomon layer for $n$ tells us where to start: we just need to count up to the layer along angle that is determined by $k$. If we know how far along in the layer it is, we know how many dots to move along before plotting our point. And finally, if we know which side it is on, we know how many turns to make along the way.
 
-As mentioned, the angle needed in drawing these diagrams is completely determined by which type of polygonal number we are drawing. The shape of the diagram is determined by the angles in a regular $k$-gon. Define $a_{ngle}$ as in equation (\ref{eq:angle}).
+For a given $n,k \in \mathbb{Z}^{+}$, $k > 2$, the preceding sections tell us which gnomon $n$ will be placed in in a $k$-polygonal diagram, and in which spot along the gnomon. 
+
+To complete the diagram, we need to also determine how much the gnomon is bent at the particular position that $n$ finds itself at. Because the gnomon is a layer in a regular $k$-gon, it bends in increments of the base angle $alpha$ that is given by Equation (\ref{eq:angle}).
+
 
 \begin{equation}
-    a_{ngle}=\left(\pi-((k-2)*(\pi/k))\right)
+    \alpha=\left(\pi-((k-2)*(\pi/k))\right)
 \label{eq:angle}
 \end{equation}
 
+If we are at a position in some gnomon layer in a $k$-polygonal diagram, the bend at which we find $i$ is given by Equation (\ref{eq:bends}).
 
-$N$ is the ordered tuple $N=\left[1,\ ...\ ,n\ \right]$. Define the point $\left(x_{kn}\left(N\right),y_{kn}\left(N\right)\right)$ according to the formulas that follow.
+\begin{equation}
+\text{bend}\left(n,k\right)=\sum_{i=1}^{\text{gdepth}\left(n\right)}\text{ceil}\left(\frac{i}{\text{gsize}\left(n\right)}\left(k-2\right)\right)
+\label{eq:bends}
+\end{equation}
+
+
+\section*{leftovers}
 
 \begin{equation}
 x_{kn}\left(l\right)=-g_{nomon}\left(l\right)\cos\left(a_{ngle}\right)-\sum_{j=1}^{g_{depth}\left(l\right)}\cos\left(s_{k}\left(j,l\right)\cdot a_{ngle}\right)
