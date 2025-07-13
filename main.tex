@@ -4,11 +4,28 @@
 \usepackage{amssymb}
 \usepackage[parfill]{parskip}
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
-
-
 \usepackage{titling}
+\usepackage{listings}
+\usepackage{xcolor}
 
-\title{Desmos Polygonal Number Diagrams (draft)}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{white},   
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    framextopmargin=3pt,  
+    framexbottommargin=3pt
+}
+\lstset{frame=lines}
+\lstset{style=mystyle}
+
+\title{Desmos Polygonal Number Diagrams}
 \author{Dan MacKinnon}
 
 \begin{document}
@@ -84,7 +101,7 @@ Applying the quadratic formula to solve $n-p_{k,i}=0$ provides us with
 This allows us to identify the gnomon layer $\text{gnomon}(n,k)$ that a given $n$ will sit in within a $k$-polygonal diagram (\ref{eq:gnomon}).
 
 \begin{equation}
-    \text{gnomon}\left(n,k\right) = \text{floor}\left(g\left(n\right)\right)  
+    \text{gnomon}\left(n,k\right) = \text{ceil}\left(g\left(n\right)\right)  
     \label{eq:gnomon}
 \end{equation}
 
@@ -108,86 +125,85 @@ To find the position of the $n$th dot within the gnomon, we need to count the nu
 
 For a given $n,k \in \mathbb{Z}^{+}$, $k > 2$, the preceding sections tell us which gnomon $n$ will be placed in in a $k$-polygonal diagram, and in which spot along the gnomon. 
 
-To complete the diagram, we need to also determine how much the gnomon is bent at the particular position that $n$ finds itself at. Because the gnomon is a layer in a regular $k$-gon, it bends in increments of the base angle $alpha$ that is given by Equation (\ref{eq:angle}).
+To complete the diagram, we need to also determine how much the gnomon is bent at the particular position that $n$ finds itself at. Because the gnomon is a layer in a regular $k$-gon, it bends in increments of the base angle $alpha_k$ that is given by Equation (\ref{eq:angle}).
 
 
 \begin{equation}
-    \alpha=\left(\pi-((k-2)*(\pi/k))\right)
+    \alpha_k=\left(\pi-((k-2)*(\pi/k))\right)
 \label{eq:angle}
 \end{equation}
 
-If we are at a position in some gnomon layer in a $k$-polygonal diagram, the bend at which we find $i$ is given by Equation (\ref{eq:bends}).
+As we draw a gnomon, we'll start at the left-most position, which for a given $n$ can be expressed by $(x_0(n,k),y_0(n,k)$ as defined in (\ref{eq:init-points}).
 
-\begin{equation}
-\text{bend}\left(n,k\right)=\sum_{i=1}^{\text{gdepth}\left(n\right)}\text{ceil}\left(\frac{i}{\text{gsize}\left(n\right)}\left(k-2\right)\right)
-\label{eq:bends}
-\end{equation}
+\begin{align*}
+    x_0\left(n,k\right) &= -\text{gnomon}\left(n,k\right)\cos{(\alpha_k)} \\
+    y_0\left(n,k\right) &=
+    \text{gnomon}\left(n,k\right)\sin{(\alpha_k)} 
+    \numberthis
+    \label{eq:init-points}
+\end{align*}
+
+Starting at the initial point $(x_0(n,k),y_0(n,k)$ for a given $n$, we want to move along the gnomon layer up to the gnomon depth of $n$ ($\text{gdepth}(n)$), bending along the gnomon as required. This process is expressed by the sums in the definitions of $x(n,k)$ and $y(n,k)$ of (\ref{eq:all}).
+
+\begin{align*}
+x(n,k) &= x_0(n,k) - \sum_{j=1}^{\text{gdepth}\left(n\right)-1}\cos\left(\alpha_{k}\cdot\left[\operatorname{ceil}\left(\frac{j}{\text{gsize}\left(n\right)}\left(k-2\right)\right)+1\right]\right)\\
+\\
+y(n,k) &= y_0(n,k) + \sum_{j=1}^{\text{gdepth}\left(n\right)-1}\sin\left(\alpha_k\cdot\left[\operatorname{ceil}\left(\frac{j}{\text{gsize}\left(n\right)}\left(k-2\right)\right)+1\right]\right)
+\numberthis
+\label{eq:all}
+\end{align*}
+
+\section*{Building in Desmos}
+
+To begin building the polygonal number diagrams in Desmos, begin with creating sliders for $n$ and $k$, and a sequence $N$ of the integers between $1$ and $n$. The base angle can also be defined.
+
+\begin{lstlisting}[escapeinside={(*}{*)}]
+Slider (*$n$*); (*$1 \leq n \leq 100$*) step: (*10*)
+Slider (*$k$*); (*$2 \leq k \leq 100$*) step: (*10*)
+(*$N=\left[1,\ ...\ ,n\ \right]$*)
+(*$a_{ngle}=\pi-(k-2)\cdot\frac{\pi}{k}$*)
+\end{lstlisting}
+
+Chose a variable name that does not correspond to one of the already used variables, and implement equations (\ref{eq:quadform}) and (\ref{eq:gnomon}). The value of $k$ is defined globally and does not need to be passed as a paramenter. The value of $n$ is not used directly; instead, the functions will be evaluated using the values of the array $N$. Here $l$ will be used as the parameter name rather than $n$. 
+
+\begin{lstlisting}[escapeinside={(*}{*)}]
+(*$g(l)=(k-4)+\text{sqrt}((k-4)^{2}+8l(k-2))/(2(k-2))$*)
+\end{lstlisting}
+
+\begin{lstlisting}[escapeinside={(*}{*)}]
+(*$g_{nomon}(l) = \text{floor}(g(l))$*)  
+\end{lstlisting}
+
+Next, implement the gnomon size and depth functions.
+
+\begin{lstlisting}[escapeinside={(*}{*)}]
+(*$ g_{size}(l)= 1 +(g_{nomon}(l) - 1)\cdot(k-2)$*)
+\end{lstlisting}
+
+\begin{lstlisting}[escapeinside={(*}{*)}]
+(*$g_{depth}(l)=\sum_{i=1}^{l}(\text{floor}(g_{nomon}(i)/g_{nomon}(l)))$*)
+\end{lstlisting}
+
+Finally, the equations for the coordinates of each plotted point can be defined based on equations (\ref{eq:init-points}) and (\ref{eq:all}).
 
 
-\section*{leftovers}
-
-\begin{equation}
-x_{kn}\left(l\right)=-g_{nomon}\left(l\right)\cos\left(a_{ngle}\right)-\sum_{j=1}^{g_{depth}\left(l\right)}\cos\left(s_{k}\left(j,l\right)\cdot a_{ngle}\right)
-\end{equation}
-
-\begin{equation}    y_{kn}\left(l\right)=g_{nomon}\left(l\right)\sin\left(a_{ngle}\right)+\sum_{j=1}^{g_{depth}\left(l\right)}\sin\left(s_{k}\left(j,l\right)\cdot a_{ngle}\right)
-\label{eq:yformula}
-\end{equation}
-
-The formulas for $x_{kn}$ and $y_{kn}$ express the idea of placing the point corresponding to the current polygonal number at the right spot in the correct gnomon layer for that number, as shown in Figure (\ref{fig:yannotated}).
-
-% \begin{figure}
-%     \centering
-%     \includegraphics[width=0.5\linewidth]{annotated_eqn.PNG}
-%     \caption{Formula for $y_{kn}$, annotated}
-%     \label{fig:yannotated}
-% \end{figure}
+\begin{lstlisting}[escapeinside={(*}{*)}]
+(*$x_0(l) = -g_{nomon}(l)\cos{(a_{ngle})}$*)
+(*$y_0(l)) = g_{nomon}(l)\sin{(a_{ngle})}$*)
+\end{lstlisting}
 
 
-\begin{equation}
-s_{k}\left(j,l\right)=\left(\text{ceil}\left(\frac{j}{g_{size}\left(l\right)}\left(k-2\right)\right)+1\right)
-\end{equation}
+\begin{lstlisting}[escapeinside={(*}{*)}]
+(*$x_{poly}(l) = x_0(l) - \sum_{j=1}^{g_{depth}(l)-1}\cos(a_{ngle}\cdot(\operatorname{ceil}(({j}/{g_{size}(l)})(k-2))+1)) $*)
 
-\begin{equation}
-g_{size}\left(l\right)=g_{nomon}\left(l\right)\cdot\left(k-2\right)+1
-\end{equation}
+(*$y_{poly}(l) = y_0(l) - \sum_{j=1}^{g_{depth}(l)-1}\sin(a_{ngle}\cdot(\operatorname{ceil}(({j}/{g_{size}(l)})(k-2))+1)) $*)
+\end{lstlisting}
 
-\begin{equation}
-    g_{depth}\left(l\right)=\sum_{o=1}^{l-1}\left(\operatorname{floor}\left(\frac{g_{nomon}\left(o\right)}{g_{nomon}\left(l\right)}\right)\right)
-\end{equation}
+To plot the points, the functions above are applied to the sequence $N$. The grid and axis can be removed from the plot.
 
-\begin{equation}
-    g_{nomon}\left(l\right)=\sum_{i=1}^{l-1}p_{olygonal}\left(i\right)
-\end{equation}
-
-\begin{equation}
-    p_{olygonal}\left(l\right)=1-\left(p_{up}\left(l\right)-p_{down}\left(l\right)\right)
-\end{equation}
-
-\begin{equation}
-p_{down}\left(l\right)=\operatorname{floor}\left(p_{verse}\left(l\right)\right)
-\end{equation}
-
-\begin{equation}
-p_{up}\left(l\right)=\operatorname{ceil}\left(p_{verse}\left(l\right)\right)
-\end{equation}
-
-One method of finding out the gnomon layer we are in is to use a formula for computing polygonal numbers along with the quadratic formula. This approach is expressed in equations (\ref{eq:quadform}) and (\ref{eq:determinant}).
-
-\begin{equation}
-    p_{verse}\left(l\right)=\frac{\left(k-4\right)+\sqrt{D\left(l\right)}}{2\left(k-2\right)}
-     \label{eq:quadform}
-\end{equation}
-
-\begin{equation}
-    D\left(l\right)=\left(k-4\right)^{2}+8l\left(k-2\right)
-    \label{eq:determinant}
-\end{equation}
-
-\section{building with gnomons}
-
-Comparing the listing for the hexagonal numbers with the diagrams above, you can see how the sequences are built diagrammatically. In general, beginning with a single dot, k-sided polygons are built by adding layers (called gnomons) consisting of k-2 segments, with each segment of the gnomon having one more dot than the segments of the previous layer. In this way, the nth gnomon consists of segments each n dots long, but with k-3 dots shared by adjoining segments (the corners).
-
+\begin{lstlisting}[escapeinside={(*}{*)}]
+(*$(x_{poly}(N),y_{poly}(N))$*)
+\end{lstlisting}
 
 
 
