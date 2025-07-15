@@ -1,0 +1,42 @@
+name: Compile with BookML
+on: 
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out LaTeX files
+        uses: actions/checkout@v4
+      - name: add permissions
+        run: "git config --global --add safe.directory /__w/desmosPolygonalDiagrams/desmosPolygonalDiagrams"
+      - name: set git variables
+        run: |
+            git config --global user.email "dmackinnon1@gmail.com"
+            git config --global user.name "Dan MacKinnon"
+      - name: cleanup old zip
+        run: |
+          git rm --ignore-unmatch *.zip
+          git commit --allow-empty -m 'removing old generated zip, github action'
+          git push
+      - name: Compile with BookML
+        id: bookml
+        # you may replace bookml with bookml-basic, bookml-small, bookml-medium to download fewer packages
+        uses: docker://ghcr.io/vlmantova/bookml:latest
+        with:
+          args: -k all aux-zip # warning: aux-zip must be run *sequentially after* all
+      - name: Store build timestamp
+        run: echo "BUILD_TIME=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_ENV
+      - name: change file name
+        run: | 
+          mv main.zip template$BUILD_TIME.zip
+          mv SCORM.main.zip SCORM.template$BUILD_TIME.zip
+      - name: adding new zips
+        run: |
+          git add main$BUILD_TIME.zip
+          git add SCORM.main$BUILD_TIME.zip
+          git commit -m 'adding new generated zip, github action'
+          git push
