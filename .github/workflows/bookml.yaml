@@ -31,7 +31,7 @@ jobs:
       - name: change file name
         run: | 
           mv main.zip main$BUILD_TIME.zip
-          mv SCORM.main.zip SCORM.template$BUILD_TIME.zip
+          mv SCORM.main.zip SCORM.main$BUILD_TIME.zip
       - name: adding new zips
         run: |
           git add main$BUILD_TIME.zip
