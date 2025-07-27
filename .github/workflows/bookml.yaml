@@ -20,6 +20,9 @@ jobs:
           git rm --ignore-unmatch *.zip
           git commit --allow-empty -m 'removing old generated zip, github action'
           git push
+      - name: set splitlat
+        run: |
+          SPLITAT=
       - name: Compile with BookML
         id: bookml
         # you may replace bookml with bookml-basic, bookml-small, bookml-medium to download fewer packages
