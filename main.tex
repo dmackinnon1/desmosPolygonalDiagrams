@@ -7,6 +7,7 @@
 \usepackage{titling}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{url}
 
 
 \lstdefinestyle{mystyle}{
@@ -36,7 +37,7 @@ Polygonal numbers, like the triangular, square, and pentagonal numbers, are clos
 \end{abstract}
 
 \section*{Polygonal numbers}
-For a given $k \in \mathbb{Z}^+, k>2$, the $k$-polygonal numbers are a recursively defined integer sequence, as shown in Equation (\ref{eq:defn1}). 
+For a given $k \in \mathbb{Z}^+, k>2$, the $k$-polygonal numbers\cite{conway1998book} are a recursively defined integer sequence, as shown in Equation (\ref{eq:defn1}). 
 
 \begin{align*}
     p_{k, 1} &= 1 \\
@@ -155,7 +156,7 @@ y(n,k) &= y_0(n,k) + \sum_{j=1}^{\text{gdepth}\left(n\right)-1}\sin\left(\alpha_
 
 \section*{Building in Desmos}
 
-To begin building the polygonal number diagrams in Desmos, begin with creating sliders for $n$ and $k$, and a sequence $N$ of the integers between $1$ and $n$. The base angle can also be defined.
+To begin building the polygonal number diagrams in Desmos\cite{desmos}, begin with creating sliders for $n$ and $k$, and a sequence $N$ of the integers between $1$ and $n$. The base angle can also be defined.
 
 \begin{lstlisting}[escapeinside={(*}{*)}]
 Slider (*$n$*); (*$1 \leq n \leq 100$*) step: (*10*)
@@ -205,6 +206,11 @@ To plot the points, the functions above are applied to the sequence $N$. The gri
 (*$(x_{poly}(N),y_{poly}(N))$*)
 \end{lstlisting}
 
+A completed implementation of these instructions can be found here: 
 
+\noindent
+\url{https://www.desmos.com/calculator/cz80t85moz}.
 
+\bibliographystyle{plain}
+\bibliography{references}
 \end{document}
