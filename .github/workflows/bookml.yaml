@@ -1,43 +1,45 @@
 name: Compile with BookML
 on: 
   workflow_dispatch:
-permissions:
-  contents: write
 jobs:
+  # Job 1: Build the HTML using bookml and prepare the artifact
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
-      - name: Check out LaTeX files
-        uses: actions/checkout@v4
-      - name: add permissions
-        run: "git config --global --add safe.directory /__w/desmosPolygonalDiagrams/desmosPolygonalDiagrams"
-      - name: set git variables
-        run: |
-            git config --global user.email "dmackinnon1@gmail.com"
-            git config --global user.name "Dan MacKinnon"
-      - name: cleanup old zip
-        run: |
-          git rm --ignore-unmatch *.zip
-          git commit --allow-empty -m 'removing old generated zip, github action'
-          git push
-      - name: set splitlat
-        run: |
-          echo "SPLITAT=" >> $GITHUB_ENV
-      - name: Compile with BookML
-        id: bookml
-        # you may replace bookml with bookml-basic, bookml-small, bookml-medium to download fewer packages
+      - name: Compile with bookml
         uses: docker://ghcr.io/vlmantova/bookml:latest
         with:
-          args: -k all aux-zip # warning: aux-zip must be run *sequentially after* all
-      - name: Store build timestamp
-        run: echo "BUILD_TIME=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_ENV
-      - name: change file name
-        run: | 
-          mv main.zip main$BUILD_TIME.zip
-          mv SCORM.main.zip SCORM.main$BUILD_TIME.zip
-      - name: adding new zips
+         args: -k all aux-zip 
+
+      - name: Unzip and Prepare Artifact
         run: |
-          git add main$BUILD_TIME.zip
-          git add SCORM.main$BUILD_TIME.zip
-          git commit -m 'adding new generated zip, github action'
-          git push
+          # Unzip the file, which creates a 'public/main' directory
+          unzip -o main.zip -d public
+          # Move all files from 'public/main' up to 'public'
+          mv public/main/* public/
+          # Remove the now-empty 'main' directory
+          rmdir public/main
+      
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload the contents of the 'public' directory
+          path: ./public
+
+  # Job 2: Deploy the artifact to GitHub Pages
+  deploy:
+    # This job runs only after the 'build' job has succeeded
+    needs: build
+    # Grant permissions for the workflow to deploy to Pages
+    permissions:
+      pages: write
+      id-token: write
+    # Specify the deployment environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
